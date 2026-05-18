@@ -75,8 +75,8 @@ if "logged_in" not in st.session_state:
 d_model = joblib.load("models/diabetes_model.pkl")
 d_scaler = joblib.load("models/diabetes_scaler.pkl")
 
-h_model = joblib.load("models/Heart_model.pkl")
-h_scaler = joblib.load("models/Heart_scaler.pkl")
+h_model = joblib.load("models/heart_model.pkl")
+h_scaler = joblib.load("models/heart_scaler.pkl")
 
 # ==========================
 # SIDEBAR
@@ -219,16 +219,19 @@ elif option == "Heart Disease":
             result = "Low Risk"
             precautions = "Maintain fitness"
 
-        cursor.execute("""
-            INSERT INTO reports(username,disease,risk,result,precautions)
-            VALUES (?,?,?,?,?)
-        """, (
-            st.session_state["username"],
-            "Heart Disease",
-            risk,
-            result,
-            precautions
-        ))
+        cursor.execute(
+    """
+    INSERT INTO reports(username, disease, risk, result, precautions)
+    VALUES (?, ?, ?, ?, ?)
+    """,
+    (
+        st.session_state["username"],
+        "Diabetes",
+        risk,
+        result,
+        precautions
+    )
+)
 
         conn.commit()
 

@@ -16,28 +16,32 @@ st.set_page_config(
 st.markdown("""
 <style>
 
-.stApp {
+/* Background */
+.stApp{
     background: linear-gradient(135deg,#0f172a,#1e293b);
     color:white;
 }
 
+/* Title */
 h1{
     text-align:center;
     color:#38bdf8;
     font-size:42px !important;
+    font-weight:bold;
 }
 
+/* Headers */
 h2,h3{
     color:white;
 }
 
 /* Sidebar */
 section[data-testid="stSidebar"]{
-    background:#111827;
+    background-color:#111827;
 }
 
-/* Modern Button */
-.stButton>button{
+/* Modern Buttons */
+.stButton > button{
     width:100%;
     border:none;
     border-radius:14px;
@@ -49,23 +53,42 @@ section[data-testid="stSidebar"]{
     transition:0.3s;
 }
 
-.stButton>button:hover{
-    transform:scale(1.04);
-    box-shadow:0px 0px 20px rgba(59,130,246,0.6);
+.stButton > button:hover{
+    transform:scale(1.03);
+    box-shadow:0px 0px 20px rgba(59,130,246,0.5);
 }
 
-/* Inputs */
-.stNumberInput, .stSlider, .stSelectbox{
-    background:#1e293b;
-    border-radius:10px;
+/* Input Fields */
+div[data-baseweb="input"]{
+    background-color:#1e293b !important;
+    border-radius:12px !important;
+    border:1px solid #334155 !important;
+}
+
+input{
+    color:white !important;
+    font-size:16px !important;
+}
+
+/* Selectbox */
+div[data-baseweb="select"]{
+    background-color:#1e293b !important;
+    border-radius:12px !important;
 }
 
 /* Result Card */
 .result-box{
-    padding:20px;
-    border-radius:15px;
     background:#1e293b;
-    margin-top:15px;
+    padding:20px;
+    border-radius:16px;
+    margin-top:20px;
+    text-align:center;
+    border:1px solid #334155;
+}
+
+/* Footer */
+footer{
+    visibility:hidden;
 }
 
 </style>
@@ -77,15 +100,21 @@ section[data-testid="stSidebar"]{
 d_model = joblib.load("models/diabetes_model.pkl")
 d_scaler = joblib.load("models/diabetes_scaler.pkl")
 
-h_model = joblib.load("models/Heart_model.pkl")
-h_scaler = joblib.load("models/Heart_scaler.pkl")
+h_model = joblib.load("models/heart_model.pkl")
+h_scaler = joblib.load("models/heart_scaler.pkl")
 
 # ==========================
-# HEADER
+# TITLE
 # ==========================
 st.title("🧠 AI Disease Prediction System")
-st.warning("⚠️ AI prediction only. Consult a doctor for real diagnosis.")
 
+st.warning(
+    "⚠️ AI prediction only. Please consult a doctor for medical advice."
+)
+
+# ==========================
+# SIDEBAR
+# ==========================
 option = st.sidebar.selectbox(
     "Select Disease",
     ["Diabetes", "Heart Disease"]
@@ -98,150 +127,257 @@ if option == "Diabetes":
 
     st.header("🩸 Diabetes Prediction")
 
-    glucose = st.slider("Glucose Level",50,250,110)
+    glucose = st.number_input(
+        "Glucose Level",
+        min_value=50,
+        max_value=250,
+        value=110
+    )
 
-    col1,col2 = st.columns(2)
+    col1, col2 = st.columns(2)
 
     with col1:
-        weight = st.number_input("Weight (kg)",20.0,200.0,60.0)
+        weight = st.number_input(
+            "Weight (kg)",
+            min_value=20.0,
+            max_value=200.0,
+            value=60.0
+        )
 
     with col2:
-        height = st.number_input("Height (feet)",3.0,8.0,5.5)
+        height = st.number_input(
+            "Height (feet)",
+            min_value=3.0,
+            max_value=8.0,
+            value=5.5
+        )
 
     height_m = height * 0.3048
-    bmi = weight / (height_m**2)
+
+    bmi = weight / (height_m ** 2)
 
     st.info(f"Calculated BMI: {bmi:.2f}")
 
-    age = st.slider("Age",1,100,25)
-    pregnancies = st.number_input("Pregnancies",0,20,0)
+    age = st.number_input(
+        "Age",
+        min_value=1,
+        max_value=100,
+        value=25
+    )
+
+    pregnancies = st.number_input(
+        "Pregnancies",
+        min_value=0,
+        max_value=20,
+        value=0
+    )
 
     if st.button("Predict Diabetes"):
 
-        data = np.array([[glucose,bmi,age,pregnancies]])
+        data = np.array([[
+            glucose,
+            bmi,
+            age,
+            pregnancies
+        ]])
+
         data = d_scaler.transform(data)
 
         prob = d_model.predict_proba(data)[0][1]
-        risk = prob*100
+
+        risk = prob * 100
 
         st.markdown(f"""
         <div class="result-box">
-        <h3>Risk Score: {risk:.1f}%</h3>
+            <h2>Risk Score</h2>
+            <h1>{risk:.1f}%</h1>
         </div>
-        """,unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
         st.progress(int(risk))
 
         if risk > 70:
+
             st.error("⚠️ High Risk of Diabetes")
+
             st.write("""
-### Precautions:
+### Precautions
 - Reduce sugar intake
 - Exercise daily
-- Maintain healthy weight
 - Drink enough water
-- Monitor blood sugar regularly
+- Avoid junk food
+- Maintain healthy weight
 - Consult doctor immediately
 """)
 
         elif risk > 40:
+
             st.warning("⚠️ Medium Risk of Diabetes")
+
             st.write("""
-### Precautions:
-- Avoid junk food
-- Walk 30 mins daily
-- Reduce stress
-- Monitor glucose monthly
+### Precautions
+- Walk daily
+- Avoid stress
+- Monitor glucose regularly
+- Improve diet quality
 """)
 
         else:
+
             st.success("✅ Low Risk of Diabetes")
-            st.write("Maintain healthy lifestyle.")
+
+            st.write("""
+### Healthy Habits
+- Continue balanced diet
+- Exercise regularly
+- Sleep properly
+""")
 
 # =====================================================
-# HEART
+# HEART DISEASE
 # =====================================================
 elif option == "Heart Disease":
 
     st.header("❤️ Heart Disease Prediction")
 
-    age = st.slider("Age",1,100,30)
-
-    sex_option = st.selectbox("Sex",["Male","Female"])
-    sex = 1 if sex_option=="Male" else 0
-
-    cp_option = st.selectbox("Chest Pain Type",
-        ["Typical Angina","Atypical Angina","Non-anginal Pain","No Chest Pain"]
+    age = st.number_input(
+        "Age",
+        min_value=1,
+        max_value=100,
+        value=30
     )
 
-    cp_map={
-        "Typical Angina":0,
-        "Atypical Angina":1,
-        "Non-anginal Pain":2,
-        "No Chest Pain":3
+    sex_option = st.selectbox(
+        "Sex",
+        ["Male", "Female"]
+    )
+
+    sex = 1 if sex_option == "Male" else 0
+
+    cp_option = st.selectbox(
+        "Chest Pain Type",
+        [
+            "Typical Angina",
+            "Atypical Angina",
+            "Non-anginal Pain",
+            "No Chest Pain"
+        ]
+    )
+
+    cp_map = {
+        "Typical Angina": 0,
+        "Atypical Angina": 1,
+        "Non-anginal Pain": 2,
+        "No Chest Pain": 3
     }
 
-    cp=cp_map[cp_option]
+    cp = cp_map[cp_option]
 
-    trestbps = st.slider("Blood Pressure",80,220,120)
-    chol = st.slider("Cholesterol",100,400,200)
+    trestbps = st.number_input(
+        "Blood Pressure",
+        min_value=80,
+        max_value=220,
+        value=120
+    )
 
-    fbs = 1 if st.selectbox(
+    chol = st.number_input(
+        "Cholesterol",
+        min_value=100,
+        max_value=400,
+        value=200
+    )
+
+    fbs_option = st.selectbox(
         "High Fasting Blood Sugar?",
-        ["No","Yes"]
-    )=="Yes" else 0
+        ["No", "Yes"]
+    )
 
-    thalach = st.slider("Maximum Heart Rate",60,220,150)
+    fbs = 1 if fbs_option == "Yes" else 0
 
-    exang = 1 if st.selectbox(
+    thalach = st.number_input(
+        "Maximum Heart Rate",
+        min_value=60,
+        max_value=220,
+        value=150
+    )
+
+    exang_option = st.selectbox(
         "Exercise Induced Chest Pain?",
-        ["No","Yes"]
-    )=="Yes" else 0
+        ["No", "Yes"]
+    )
+
+    exang = 1 if exang_option == "Yes" else 0
 
     if st.button("Predict Heart Disease"):
 
-        data=np.array([[age,sex,cp,trestbps,chol,fbs,thalach,exang]])
-        data=h_scaler.transform(data)
+        data = np.array([[
+            age,
+            sex,
+            cp,
+            trestbps,
+            chol,
+            fbs,
+            thalach,
+            exang
+        ]])
 
-        prob=h_model.predict_proba(data)[0][1]
-        risk=prob*100
+        data = h_scaler.transform(data)
+
+        prob = h_model.predict_proba(data)[0][1]
+
+        risk = prob * 100
 
         st.markdown(f"""
         <div class="result-box">
-        <h3>Risk Score: {risk:.1f}%</h3>
+            <h2>Risk Score</h2>
+            <h1>{risk:.1f}%</h1>
         </div>
-        """,unsafe_allow_html=True)
+        """, unsafe_allow_html=True)
 
         st.progress(int(risk))
 
-        if risk>70:
+        if risk > 70:
+
             st.error("⚠️ High Risk of Heart Disease")
+
             st.write("""
-### Precautions:
-- Avoid oily food
+### Precautions
+- Reduce oily food
 - Reduce salt intake
+- Exercise regularly
 - Stop smoking
-- Exercise daily
-- Check BP regularly
+- Monitor blood pressure
 - Consult cardiologist immediately
 """)
 
-        elif risk>40:
-            st.warning("⚠️ Medium Risk")
+        elif risk > 40:
+
+            st.warning("⚠️ Medium Risk of Heart Disease")
+
             st.write("""
-### Precautions:
+### Precautions
 - Walk daily
 - Avoid stress
-- Eat fruits & vegetables
+- Eat healthy foods
 - Monitor cholesterol
 """)
 
         else:
-            st.success("✅ Low Risk")
-            st.write("Maintain healthy habits.")
+
+            st.success("✅ Low Risk of Heart Disease")
+
+            st.write("""
+### Healthy Habits
+- Maintain balanced diet
+- Exercise regularly
+- Sleep properly
+""")
 
 # ==========================
 # FOOTER
 # ==========================
 st.markdown("---")
-st.write("Developed by Atul | AI ML Project")
+
+st.write(
+    "Developed by Atul | AI ML Project"
+)

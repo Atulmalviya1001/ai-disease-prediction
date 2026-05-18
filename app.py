@@ -21,14 +21,14 @@ menu = st.sidebar.selectbox("Menu", ["Login", "Signup"])
 if menu == "Signup":
     st.subheader("Create Account")
 
-    new_user = st.text_input("Username")
-    new_pass = st.text_input("Password", type="password")
+    username = st.text_input("Username")
+    password = st.text_input("Password", type="password")
 
     if st.button("Signup"):
         try:
             cursor.execute(
                 "INSERT INTO users(username,password) VALUES(?,?)",
-                (new_user, new_pass)
+                (username, password)
             )
             conn.commit()
             st.success("Account Created")
@@ -54,7 +54,7 @@ elif menu == "Login":
             st.session_state["username"] = username
             st.success("Login Successful")
         else:
-            st.error("Invalid credentials")
+            st.error("Invalid Credentials")
 
 # STOP IF NOT LOGGED IN
 if "logged_in" not in st.session_state:
@@ -80,7 +80,7 @@ if st.sidebar.button("Logout"):
     st.rerun()
 
 # ==========================
-# VIEW HISTORY
+# HISTORY
 # ==========================
 if st.sidebar.button("View History"):
     cursor.execute("""
@@ -102,9 +102,9 @@ if st.sidebar.button("View History"):
         """)
 
 # ==========================
-# DISEASE SELECT
+# SELECT DISEASE
 # ==========================
-option = st.sidebar.selectbox("Select Disease", ["Diabetes", "Heart"])
+option = st.sidebar.selectbox("Select Disease", ["Diabetes", "Heart Disease"])
 
 # =====================================================
 # DIABETES
@@ -114,7 +114,7 @@ if option == "Diabetes":
     st.header("🩸 Diabetes Prediction")
 
     glucose = st.number_input("Glucose", 50, 250, 110)
-    weight = st.number_input("Weight", 20.0, 200.0, 60.0)
+    weight = st.number_input("Weight (kg)", 20.0, 200.0, 60.0)
     height = st.number_input("Height (feet)", 3.0, 8.0, 5.5)
 
     bmi = weight / ((height * 0.3048) ** 2)
@@ -131,7 +131,7 @@ if option == "Diabetes":
         prob = d_model.predict_proba(data)[0][1]
         risk = prob * 100
 
-        # RESULT LOGIC
+        # RESULT + PRECAUTIONS
         if risk > 70:
             result = "High Risk"
             precautions = "Reduce sugar, exercise daily, consult doctor"
@@ -144,12 +144,9 @@ if option == "Diabetes":
             result = "Low Risk"
             precautions = "Maintain healthy lifestyle"
 
-        # SAVE TO DB (FIXED)
+        # SAVE TO DB (SAFE METHOD)
         cursor.execute(
-            """
-            INSERT INTO reports(username, disease, risk, result, precautions)
-            VALUES (?, ?, ?, ?, ?)
-            """,
+            "INSERT INTO reports(username, disease, risk, result, precautions) VALUES (?, ?, ?, ?, ?)",
             (
                 st.session_state["username"],
                 "Diabetes",
@@ -167,7 +164,7 @@ if option == "Diabetes":
 # =====================================================
 # HEART DISEASE
 # =====================================================
-elif option == "Heart":
+elif option == "Heart Disease":
 
     st.header("❤️ Heart Disease Prediction")
 
@@ -184,7 +181,7 @@ elif option == "Heart":
     thalach = st.number_input("Max Heart Rate", 60, 220, 150)
     exang = 1 if st.selectbox("Exercise Pain", ["No", "Yes"]) == "Yes" else 0
 
-    if st.button("Predict Heart"):
+    if st.button("Predict Heart Disease"):
 
         data = np.array([[age, sex, cp_map[cp], trestbps, chol, fbs, thalach, exang]])
         data = h_scaler.transform(data)
@@ -192,7 +189,7 @@ elif option == "Heart":
         prob = h_model.predict_proba(data)[0][1]
         risk = prob * 100
 
-        # RESULT LOGIC
+        # RESULT + PRECAUTIONS
         if risk > 70:
             result = "High Risk"
             precautions = "Avoid oily food, exercise, stop smoking"
@@ -205,12 +202,9 @@ elif option == "Heart":
             result = "Low Risk"
             precautions = "Maintain fitness"
 
-        # SAVE TO DB (FIXED)
+        # SAVE TO DB
         cursor.execute(
-            """
-            INSERT INTO reports(username, disease, risk, result, precautions)
-            VALUES (?, ?, ?, ?, ?)
-            """,
+            "INSERT INTO reports(username, disease, risk, result, precautions) VALUES (?, ?, ?, ?, ?)",
             (
                 st.session_state["username"],
                 "Heart Disease",

@@ -156,8 +156,8 @@ if option == "Diabetes":
 
         # SAVE TO DB
         cursor.execute("""
-            INSERT INTO reports(username,disease,risk,result,precautions)
-            VALUES (?,?,?,?,?)
+            INSERT INTO reports(id,username,disease,risk,result,precautions)
+            VALUES (?,?,?,?,?,?)
         """, (
             st.session_state["username"],
             "Diabetes",

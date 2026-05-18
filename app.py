@@ -19,7 +19,7 @@ h_model = joblib.load(
 )
 
 h_scaler = joblib.load(
-    "Heart_scaler.pkl"
+    "models/Heart_scaler.pkl"
 )
 
 # =========================

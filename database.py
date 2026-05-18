@@ -1,9 +1,14 @@
 import sqlite3
 
+# ==========================
+# DATABASE CONNECTION
+# ==========================
 conn = sqlite3.connect("health_app.db", check_same_thread=False)
 cursor = conn.cursor()
 
+# ==========================
 # USERS TABLE
+# ==========================
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS users(
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -12,7 +17,9 @@ CREATE TABLE IF NOT EXISTS users(
 )
 """)
 
+# ==========================
 # REPORTS TABLE (WITH PRECAUTIONS)
+# ==========================
 cursor.execute("""
 CREATE TABLE IF NOT EXISTS reports(
     id INTEGER PRIMARY KEY AUTOINCREMENT,

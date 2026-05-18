@@ -102,8 +102,8 @@ footer{
 d_model = joblib.load("models/diabetes_model.pkl")
 d_scaler = joblib.load("models/diabetes_scaler.pkl")
 
-h_model = joblib.load("models/heart_model.pkl")
-h_scaler = joblib.load("models/heart_scaler.pkl")
+h_model = joblib.load("models/Heart_model.pkl")
+h_scaler = joblib.load("models/Heart_scaler.pkl")
 
 # ==========================
 # TITLE

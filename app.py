@@ -2,6 +2,8 @@ import streamlit as st
 import joblib
 import numpy as np
 
+from database import conn, cursor
+
 # ==========================
 # PAGE CONFIG
 # ==========================
@@ -100,8 +102,8 @@ footer{
 d_model = joblib.load("models/diabetes_model.pkl")
 d_scaler = joblib.load("models/diabetes_scaler.pkl")
 
-h_model = joblib.load("models/Heart_model.pkl")
-h_scaler = joblib.load("models/Heart_scaler.pkl")
+h_model = joblib.load("models/heart_model.pkl")
+h_scaler = joblib.load("models/heart_scaler.pkl")
 
 # ==========================
 # TITLE
@@ -109,12 +111,126 @@ h_scaler = joblib.load("models/Heart_scaler.pkl")
 st.title("🧠 AI Disease Prediction System")
 
 st.warning(
-    "⚠️ AI prediction only. Please consult a doctor for medical advice."
+    "⚠️ AI prediction only. Consult doctor for medical advice."
 )
+
+# ==========================
+# LOGIN SYSTEM
+# ==========================
+st.sidebar.title("Account")
+
+menu = st.sidebar.selectbox(
+    "Menu",
+    ["Login", "Signup"]
+)
+
+# --------------------------
+# SIGNUP
+# --------------------------
+if menu == "Signup":
+
+    st.subheader("Create Account")
+
+    new_user = st.text_input("Username")
+
+    new_pass = st.text_input(
+        "Password",
+        type="password"
+    )
+
+    if st.button("Signup"):
+
+        try:
+
+            cursor.execute(
+                "INSERT INTO users(username,password) VALUES(?,?)",
+                (new_user, new_pass)
+            )
+
+            conn.commit()
+
+            st.success("Account Created Successfully")
+
+        except:
+
+            st.error("Username already exists")
+
+# --------------------------
+# LOGIN
+# --------------------------
+elif menu == "Login":
+
+    st.subheader("Login")
+
+    username = st.text_input("Username")
+
+    password = st.text_input(
+        "Password",
+        type="password"
+    )
+
+    if st.button("Login"):
+
+        cursor.execute(
+            "SELECT * FROM users WHERE username=? AND password=?",
+            (username, password)
+        )
+
+        data = cursor.fetchone()
+
+        if data:
+
+            st.session_state["logged_in"] = True
+            st.session_state["username"] = username
+
+            st.success("Login Successful")
+
+        else:
+
+            st.error("Invalid Username or Password")
+
+# ==========================
+# STOP IF NOT LOGGED IN
+# ==========================
+if "logged_in" not in st.session_state:
+
+    st.warning("Please Login First")
+
+    st.stop()
 
 # ==========================
 # SIDEBAR
 # ==========================
+st.sidebar.success(
+    f"Welcome {st.session_state['username']}"
+)
+
+# Logout
+if st.sidebar.button("Logout"):
+
+    st.session_state.clear()
+
+    st.rerun()
+
+# View History
+if st.sidebar.button("View History"):
+
+    cursor.execute(
+        "SELECT disease,risk,result FROM reports WHERE username=?",
+        (st.session_state["username"],)
+    )
+
+    reports = cursor.fetchall()
+
+    st.subheader("📜 Prediction History")
+
+    for report in reports:
+
+        st.write(
+            f"Disease: {report[0]} | Risk: {report[1]:.1f}% | Result: {report[2]}"
+        )
+
+# Disease Selection
 option = st.sidebar.selectbox(
     "Select Disease",
     ["Diabetes", "Heart Disease"]
@@ -137,6 +253,7 @@ if option == "Diabetes":
     col1, col2 = st.columns(2)
 
     with col1:
+
         weight = st.number_input(
             "Weight (kg)",
             min_value=20.0,
@@ -145,6 +262,7 @@ if option == "Diabetes":
         )
 
     with col2:
+
         height = st.number_input(
             "Height (feet)",
             min_value=3.0,
@@ -196,6 +314,33 @@ if option == "Diabetes":
 
         st.progress(int(risk))
 
+        # Risk Level
+        if risk > 70:
+
+            result = "High Risk"
+
+        elif risk > 40:
+
+            result = "Medium Risk"
+
+        else:
+
+            result = "Low Risk"
+
+        # Save Report
+        cursor.execute(
+            "INSERT INTO reports(username,disease,risk,result) VALUES(?,?,?,?)",
+            (
+                st.session_state["username"],
+                "Diabetes",
+                risk,
+                result
+            )
+        )
+
+        conn.commit()
+
+        # Show Result
         if risk > 70:
 
             st.error("⚠️ High Risk of Diabetes")
@@ -336,6 +481,33 @@ elif option == "Heart Disease":
 
         st.progress(int(risk))
 
+        # Risk Level
+        if risk > 70:
+
+            result = "High Risk"
+
+        elif risk > 40:
+
+            result = "Medium Risk"
+
+        else:
+
+            result = "Low Risk"
+
+        # Save Report
+        cursor.execute(
+            "INSERT INTO reports(username,disease,risk,result) VALUES(?,?,?,?)",
+            (
+                st.session_state["username"],
+                "Heart Disease",
+                risk,
+                result
+            )
+        )
+
+        conn.commit()
+
+        # Show Result
         if risk > 70:
 
             st.error("⚠️ High Risk of Heart Disease")
@@ -378,6 +550,4 @@ elif option == "Heart Disease":
 # ==========================
 st.markdown("---")
 
-st.write(
-    "Developed by Atul | AI ML Project"
-)
+st.write("Developed by Atul | AI ML Project")
